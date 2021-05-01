@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,24 @@ namespace MvcMovie
 
             services.AddDbContext<MvcMovieContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("MvcMovieContext")));
+
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var cultures = new List<CultureInfo> {
+                new CultureInfo("en"),
+                new CultureInfo("ro"),
+                new CultureInfo("de"),
+                new CultureInfo("nb")
+            };
+                options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("en");
+                options.SupportedCultures = cultures;
+                options.SupportedUICultures = cultures;
+            });
+            services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+            services.AddMvc()
+                .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+                .AddDataAnnotationsLocalization();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,14 +61,25 @@ namespace MvcMovie
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            var defaultCulture = new CultureInfo("ro_RO");
-            var lovalizationOptions = new RequestLocalizationOptions
+            var defaultCulture = new CultureInfo("en");
+            var supportedCultures = new List<CultureInfo>
+                {
+                    new CultureInfo("en"),
+                    new CultureInfo("ro"),
+                    new CultureInfo("de"),
+                    new CultureInfo("nb"),
+                };
+            var localizationOptions = new RequestLocalizationOptions
             {
-                DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(defaultCulture),
-                SupportedUICultures = new List<CultureInfo> { defaultCulture },
-                SupportedCultures = new List<CultureInfo> { defaultCulture}
+                DefaultRequestCulture = new RequestCulture(defaultCulture),
+                SupportedUICultures = supportedCultures,
+                SupportedCultures = supportedCultures
             };
-            app.UseRequestLocalization(lovalizationOptions);
+
+            localizationOptions.ApplyCurrentCultureToResponseHeaders = true;
+
+            app.UseRequestLocalization(localizationOptions);
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

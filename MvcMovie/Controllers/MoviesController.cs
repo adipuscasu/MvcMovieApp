@@ -1,8 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using MvcMovie.Data;
 using MvcMovie.Models;
 
@@ -11,10 +15,12 @@ namespace MvcMovie.Controllers
     public class MoviesController : Controller
     {
         private readonly MvcMovieContext _context;
+        private readonly IStringLocalizer<MoviesController> _localizer;
 
-        public MoviesController(MvcMovieContext context)
+        public MoviesController(MvcMovieContext context, IStringLocalizer<MoviesController> localizer)
         {
             _context = context;
+            _localizer = localizer;
         }
 
         // GET: Movies
@@ -43,6 +49,9 @@ namespace MvcMovie.Controllers
                 Genres = new SelectList(await genreQuery.Distinct().ToListAsync()),
                 Movies = await movies.ToListAsync()
             };
+            var firstName = "Adrian";
+            var lastName = "Puscasu";
+            ViewData["Message"] = _localizer["txtHello {0} {1}", firstName, lastName];
 
             return View(movieGenreVM);
         }
@@ -171,6 +180,20 @@ namespace MvcMovie.Controllers
             _context.Movie.Remove(movie);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+
+
+        [HttpPost]
+        public IActionResult SetLanguage(string culture, string returnUrl)
+        {
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+            );
+
+            return LocalRedirect(returnUrl);
         }
 
         private bool MovieExists(int id)

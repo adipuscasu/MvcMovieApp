@@ -42,6 +42,14 @@
         <div class="container">
             &copy; 2020 - Movie App - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
+        <div class="row">
+            <div class="col-md-6">
+                <p>&copy; @System.DateTime.Now.Year - Localization</p>
+            </div>
+            <div class="col-md-6 text-right">
+                @await Html.PartialAsync("_SelectLanguagePartial")
+            </div>
+        </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
